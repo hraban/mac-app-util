@@ -14,6 +14,7 @@
             name = "app-plist-copy";
             src = ./main.lisp;
             dependencies = [
+              alexandria
               inferior-shell
               trivia
             ];
