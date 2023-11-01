@@ -36,10 +36,6 @@
   (let ((val (sh:run/ss `(,plutil -extract ,path raw -expect ,type #\o - -- ,from))))
     (sh:run `(,plutil -replace ,path ,(format NIL "-~(~A~)" type) ,val -- ,to))))
 
-(defun enumerate (seq)
-  "Like Python’s enumerate: (a b c) => ((0 a) (1 b) (2 c))"
-  (mapcar #'list (alex:iota (length seq)) seq))
-
 (defun copy-array (from to path)
   (let ((size (parse-integer (sh:run/ss `(,plutil -extract ,path raw -- ,from)))))
     ;; Initialize with a fresh array (idempotent)
