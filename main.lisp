@@ -60,9 +60,11 @@
 (defun get-type (plist path)
   (declare (type string plist)
            (type string path))
-  (let ((type (sh:run/ss `(,plutil -type ,path -o - -- ,plist))))
-    (or (cdr (assoc type type-map :test #'equal))
-        (error "Unknown type ~A at ~A:~A" type plist path))))
+  (multiple-value-bind (type _ status) (sh:run/ss `(,plutil -type ,path -o - -- ,plist)
+                                                  :on-error nil)
+    (when (eql 0 status)
+      (or (cdr (assoc type type-map :test #'equal))
+          (error "Unknown type ~A at ~A:~A" type plist path)))))
 
 (defun copy-path (from to path &optional (type (get-type from path)))
   (cond
@@ -71,7 +73,10 @@
     ((eql 'array type)
      (copy-array from to path))
     ((eql 'dictionary type)
-     (copy-dict from to path))))
+     (copy-dict from to path))
+    ((null type)
+     ;; skip
+     )))
 
 (defun copy-paths (from to paths)
   (declare (type list-of-strings paths))
