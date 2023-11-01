@@ -11,7 +11,7 @@
       {
         packages = {
           default = with pkgs.lispPackagesLite; lispScript {
-            name = "app-plist-copy";
+            name = "plist-copy";
             src = ./main.lisp;
             dependencies = [
               alexandria

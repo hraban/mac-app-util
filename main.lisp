@@ -81,6 +81,6 @@
   (trivia:match (uiop:command-line-arguments)
     ((list* from to paths)
      (copy-paths from to paths))
-    (_ (error "Usage: app-plist-copy FROM TO PATH..."))))
+    (_ (error "Usage: plist-copy FROM TO PATH..."))))
 
 (main)

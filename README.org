@@ -3,7 +3,7 @@
 Usage:
 
 #+begin_src shell
-$ nix run github:hraban/app-plist-copy -- from.plist to.plist PropA PropB PropC ...
+$ nix run github:hraban/plist-copy -- from.plist to.plist PropA PropB PropC ...
 #+end_src
 
 Copies properties from one plist file to the next.
