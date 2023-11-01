@@ -19,6 +19,10 @@
               str
               trivia
             ];
+            installCheckPhase = ''
+              $out/bin/plist-copy --help
+            '';
+            doInstallCheck = true;
           };
         };
       });

@@ -79,10 +79,20 @@
   (dolist (path paths)
     (copy-path from to path)))
 
+(defun print-usage ()
+  (format T "Usage: plist-copy FROM-FILE TO-FILE KEY1 KEY2 KEY3..."))
+
 (defun main ()
-  (trivia:match (uiop:command-line-arguments)
-    ((list* from to paths)
-     (copy-paths from to paths))
-    (_ (error "Usage: plist-copy FROM TO PATH..."))))
+  (let ((args (uiop:command-line-arguments)))
+    (if (intersection args '("-h" "--help") :test #'equal)
+        (progn
+          (print-usage)
+          (uiop:quit 0))
+        (trivia:match args
+          ((list* from to paths)
+           (copy-paths from to paths))
+          (_
+           (print-usage)
+           (uiop:quit 1))))))
 
 (main)
