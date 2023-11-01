@@ -5,6 +5,7 @@
 
 (asdf:load-system "alexandria")
 (asdf:load-system "inferior-shell")
+(asdf:load-system "str")
 (asdf:load-system "trivia")
 
 (defpackage #:script
@@ -51,7 +52,7 @@
   (let ((keys (sh:run/lines `(plutil -extract ,path raw -- ,from))))
     (sh:run `(plutil -replace ,path -dictionary -- ,to))
     (dolist (key keys)
-      (let* ((nested (format NIL "~A.~A" path key))
+      (let* ((nested (format NIL "~A.~A" path (str:replace-all "." "\\." key)))
              (type (get-type from nested)))
         (copy-path from to nested type)))))
 
