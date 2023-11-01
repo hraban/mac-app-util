@@ -13,7 +13,10 @@
           default = with pkgs.lispPackagesLite; lispScript {
             name = "app-plist-copy";
             src = ./main.lisp;
-            dependencies = [ alexandria ];
+            dependencies = [
+              inferior-shell
+              trivia
+            ];
           };
         };
       });
