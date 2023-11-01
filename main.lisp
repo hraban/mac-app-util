@@ -47,6 +47,14 @@
              (type (get-type from nested)))
         (copy-path from to nested type)))))
 
+(defun copy-dict (from to path)
+  (let ((keys (sh:run/lines `(plutil -extract ,path raw -- ,from))))
+    (sh:run `(plutil -replace ,path -dictionary -- ,to))
+    (dolist (key keys)
+      (let* ((nested (format NIL "~A.~A" path key))
+             (type (get-type from nested)))
+        (copy-path from to nested type)))))
+
 (defun get-type (plist path)
   (declare (type string plist)
            (type string path))
@@ -59,7 +67,9 @@
     ((member type atom-types)
      (copy-atom from to path type))
     ((eql 'array type)
-     (copy-array from to path))))
+     (copy-array from to path))
+    ((eql 'dictionary type)
+     (copy-dict from to path))))
 
 (defun copy-paths (from to paths)
   (declare (type list-of-strings paths))
