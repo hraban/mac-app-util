@@ -61,7 +61,7 @@
    :if-does-not-exist :ignore))
 
 (defmacro with-temp-dir ((dname) &body body)
-  `(let ((,dname (sh/ss '(mktemp #\d))))
+  `(let ((,dname (uiop:ensure-directory-pathname (sh/ss '(mktemp #\d)))))
      (unwind-protect (progn ,@body)
        (rm-rf ,dname))))
 
