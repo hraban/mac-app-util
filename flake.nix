@@ -4,7 +4,7 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, cl-nix-lite }:
-    flake-utils.lib.eachDefaultSystem (system:
+    with flake-utils.lib; eachSystem (with system; [ x86_64-darwin aarch64-darwin ]) (system:
       with rec {
         pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
       };
