@@ -30,3 +30,22 @@ $ nix run github:hraban/mac-app-util -- sync-dock Foo.app
 It will find an old persistent item by the name of "Foo" and update it to the new location.
 
 N.B.: This is currently limited only to Nix apps, but actually it could work for anything. I’ve just kept it conservative to be on the safe side.
+
+* License
+
+mac-app-util - Manage Mac App launchers
+Copyright © 2023  Hraban Luyat
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, version 3 of the License.
+
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
