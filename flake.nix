@@ -16,6 +16,7 @@
             dependencies = [
               alexandria
               inferior-shell
+              cl-interpol
               str
               trivia
             ];

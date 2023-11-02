@@ -4,6 +4,7 @@
 (require "uiop")
 
 (asdf:load-system "alexandria")
+(asdf:load-system "cl-interpol")
 (asdf:load-system "inferior-shell")
 (asdf:load-system "str")
 (asdf:load-system "trivia")
@@ -18,6 +19,7 @@
 (defparameter *known-types* '(string bool integer float array dictionary))
 (defparameter *atom-types* '(string bool integer float))
 (defvar *plutil* "/usr/bin/plutil")
+(named-readtables:in-readtable :interpol-syntax)
 
 (defparameter *type-map*
   (mapcar (lambda (s) (cons (string-downcase (symbol-name s)) s)) *known-types*))
@@ -109,10 +111,10 @@
     (copy-path from to path)))
 
 (defun resources (app)
-  (format NIL "~A/Contents/Resources/" app))
+  #?"${app}/Contents/Resources/")
 
 (defun infoplist (app)
-  (format NIL "~A/Contents/Info.plist" app))
+  #?"${app}/Contents/Info.plist")
 
 (defun sync-icons (from to)
   "Remove all icons from TO apps resources, and copy all icons FROM to it"
