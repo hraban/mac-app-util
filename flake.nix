@@ -17,6 +17,7 @@
               alexandria
               inferior-shell
               cl-interpol
+              cl-json
               str
               trivia
             ];
