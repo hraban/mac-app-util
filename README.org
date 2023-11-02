@@ -1,9 +1,11 @@
-* Copy Apple PLIST properties between files
+* Create a trampoline launcher for a Mac app
 
 Usage:
 
 #+begin_src shell
-$ nix run github:hraban/plist-copy -- from.plist to.plist PropA PropB PropC ...
+$ nix run github:hraban/mktrampoline -- /path/to/MyApp.app /Applications/MyApp.app
 #+end_src
 
-Copies properties from one plist file to the next.
+This creates a “trampoline” launcher app which is a simple wrapper application that just launches your actual application.
+
+See https://github.com/nix-community/home-manager/issues/1341

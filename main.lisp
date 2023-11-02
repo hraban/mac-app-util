@@ -109,7 +109,7 @@
 ;;; CLI
 
 (defun print-usage ()
-  (format T "Usage: plist-copy FROM.app TO.app"))
+  (format T "Usage: mktrampoline FROM.app TO.app"))
 
 (defun main ()
   (let ((args (uiop:command-line-arguments)))

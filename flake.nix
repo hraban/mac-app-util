@@ -10,8 +10,8 @@
       };
       {
         packages = {
-          default = with pkgs.lispPackagesLite; lispScript {
-            name = "plist-copy";
+          default = with pkgs.lispPackagesLite; lispScript rec {
+            name = "mktrampoline";
             src = ./main.lisp;
             dependencies = [
               alexandria
@@ -23,11 +23,11 @@
             ];
             nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
             postInstall = ''
-              wrapProgramBinary "$out/bin/plist-copy" \
+              wrapProgramBinary "$out/bin/${name}" \
                 --suffix PATH : "${pkgs.lib.makeBinPath [ pkgs.rsync pkgs.findutils ]}"
             '';
             installCheckPhase = ''
-              $out/bin/plist-copy --help
+              $out/bin/${name} --help
             '';
             doInstallCheck = true;
           };
