@@ -10,7 +10,7 @@ Made with Nix in mind.
 This creates a “trampoline” launcher app which is a simple wrapper application that just launches your actual application.
 
 #+begin_src shell
-$ nix run github:hraban/apputil -- mktrampoline /path/to/MyApp.app /Applications/MyApp.app
+$ nix run github:hraban/mac-app-util -- mktrampoline /path/to/MyApp.app /Applications/MyApp.app
 #+end_src
 
 Intuitively, you would either fully copy & paste the original .app, or create a symlink or “alias”; all of those solutions have different problems and they don’t get indexed by Spotlight properly.
@@ -24,7 +24,7 @@ See https://github.com/nix-community/home-manager/issues/1341
 When you have an app in your Dock which doesn’t live in =/Applications/..=, it can get stale: e.g. your app at =/foo/v1/Foo.app= gets replaced by =/foo/v2/Foo.app=. To automatically update the Dock to the new location of Foo, execute:
 
 #+begin_src shell
-$ nix run github:hraban/apputil -- sync-dock Foo.app
+$ nix run github:hraban/mac-app-util -- sync-dock Foo.app
 #+end_src
 
 It will find an old persistent item by the name of "Foo" and update it to the new location.

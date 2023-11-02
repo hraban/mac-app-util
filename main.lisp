@@ -157,8 +157,8 @@ Also resolves symlinks, if relevant.
 (defun print-usage ()
   (format T "Usage:
 
-    apputil mktrampoline FROM.app TO.app
-    apputil sync-dock Foo.app Bar.app ...
+    mac-app-util mktrampoline FROM.app TO.app
+    mac-app-util sync-dock Foo.app Bar.app ...
 
 mktrampline creates a “trampoline” application launcher that immediately
 launches another application.

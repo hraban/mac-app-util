@@ -11,7 +11,7 @@
       {
         packages = {
           default = with pkgs.lispPackagesLite; lispScript rec {
-            name = "apputil";
+            name = "mac-app-util";
             src = ./main.lisp;
             dependencies = [
               alexandria
