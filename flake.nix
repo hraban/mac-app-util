@@ -19,6 +19,11 @@
               str
               trivia
             ];
+            nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
+            postInstall = ''
+              wrapProgramBinary "$out/bin/plist-copy" \
+                --suffix PATH : "${pkgs.lib.makeBinPath [ pkgs.rsync pkgs.findutils ]}"
+            '';
             installCheckPhase = ''
               $out/bin/plist-copy --help
             '';
