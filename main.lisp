@@ -43,6 +43,7 @@
   "Based on a hunch, nothing scientific.")
 
 (defun sh (&rest args)
+  ;; This is my personal convention; set DEBUGSH to anything to effect set -x
   (apply #'sh:run `(,@args :show ,(uiop:getenv "DEBUGSH"))))
 
 (defun sh/ss (&rest args)
