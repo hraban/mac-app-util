@@ -115,18 +115,23 @@
 ;;; CLI
 
 (defun print-usage ()
-  (format T "Usage: mktrampoline FROM.app TO.app"))
+  (format T "Usage:
+
+    apputil mktrampoline FROM.app TO.app
+
+"))
 
 (defun main ()
   (let ((args (uiop:command-line-arguments)))
-    (cond
-      ((intersection args '("-h" "--help") :test #'equal)
-       (print-usage)
-       (uiop:quit 0))
-      ((eql 2 (length args))
-       (apply #'create-trampoline args))
-      (t
-       (print-usage)
-       (uiop:quit 1)))))
+    (if (intersection args '("-h" "--help") :test #'equal)
+        (progn
+          (print-usage)
+          (uiop:quit 0))
+        (trivia:match args
+          ((list "mktrampoline" from to)
+           (create-trampoline from to))
+          (_
+           (print-usage)
+           (uiop:quit 1))))))
 
 (main)

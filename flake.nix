@@ -11,7 +11,7 @@
       {
         packages = {
           default = with pkgs.lispPackagesLite; lispScript rec {
-            name = "mktrampoline";
+            name = "apputil";
             src = ./main.lisp;
             dependencies = [
               alexandria

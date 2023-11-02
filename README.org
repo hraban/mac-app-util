@@ -1,11 +1,17 @@
-* Create a trampoline launcher for a Mac app
+* Utilities for Mac App launchers
 
-Usage:
+- =mktrampoline= :: Create a “trampoline” launcher app
 
-#+begin_src shell
-$ nix run github:hraban/mktrampoline -- /path/to/MyApp.app /Applications/MyApp.app
-#+end_src
+** mktrampoline
 
 This creates a “trampoline” launcher app which is a simple wrapper application that just launches your actual application.
+
+#+begin_src shell
+$ nix run github:hraban/apputil -- mktrampoline /path/to/MyApp.app /Applications/MyApp.app
+#+end_src
+
+Intuitively, you would either fully copy & paste the original .app, or create a symlink or “alias”; all of those solutions have different problems and they don’t get indexed by Spotlight properly.
+
+This trampoline script is indexed by Spotlight and by Launchpad, so you can keep launching your apps using =⌘ SPC <appname> ⏎=
 
 See https://github.com/nix-community/home-manager/issues/1341
