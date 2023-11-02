@@ -131,6 +131,12 @@ Also resolves symlinks, if relevant.
 
 (defun sync-dock (apps)
   "Every element must be a pathname to a real directory, not a symlink"
+  ;; dockutil doesn't like acting under sudo and will fall back to the original
+  ;; user. That’s sensible when using dockutil as an end user, but because this
+  ;; tool /wraps/ it, it leads to unexpected results e.g. when used in a home
+  ;; manager activation script. Just stick to the dumb default: act as the user
+  ;; that invokes you, no special sudo tricks.
+  (setf (uiop:getenv "SUDO_USER") "")
   ;; Filtering for /nix/store is not technically part of the docs but let’s be
   ;; conservative for now.
   (let ((persistents (sh '(sh:pipe (dockutil #\L)
