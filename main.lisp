@@ -49,10 +49,14 @@
 (defun sh/ss (&rest args)
   (apply #'sh `(,@args :output (:string :stripped t))))
 
-(defun rm-rf (p)
-  (declare (string p))
+(defgeneric rm-rf (p))
+
+(defmethod rm-rf ((p string))
+  (rm-rf (uiop:parse-native-namestring p :ensure-directory t)))
+
+(defmethod rm-rf ((p pathname))
   (uiop:delete-directory-tree
-   (uiop:parse-native-namestring p :ensure-directory t)
+   (uiop:ensure-directory-pathname p)
    :validate t
    :if-does-not-exist :ignore))
 
@@ -99,11 +103,13 @@
           (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts)))))
 
 (defun create-trampoline (app trampoline)
-  (let* ((cmd (format NIL "do shell script \"open '~A'\"" app)))
-    (rm-rf trampoline)
-    (sh `("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd))
-    (sync-icons app trampoline)
-    (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)))
+  (let* ((aapp (merge-pathnames app (uiop:getcwd)))
+         (atrampoline (merge-pathnames trampoline (uiop:getcwd)))
+         (cmd (format NIL "do shell script \"open '~A'\"" aapp)))
+    (rm-rf atrampoline)
+    (sh `("/usr/bin/osacompile" #\o ,atrampoline #\e ,cmd))
+    (sync-icons aapp atrampoline)
+    (copy-paths (infoplist aapp) (infoplist atrampoline) *copyable-app-props*)))
 
 
 ;;; CLI
