@@ -24,7 +24,7 @@
             nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
             postInstall = ''
               wrapProgramBinary "$out/bin/${name}" \
-                --suffix PATH : "${pkgs.lib.makeBinPath [ pkgs.rsync pkgs.findutils ]}"
+                --suffix PATH : "${with pkgs; lib.makeBinPath [ dockutil rsync findutils ]}"
             '';
             installCheckPhase = ''
               $out/bin/${name} --help

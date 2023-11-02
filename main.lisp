@@ -71,6 +71,9 @@
 (deftype list-of-strings ()
   `(satisfies list-of-strings-p))
 
+
+;;; mktrampoline
+
 (defun copy-paths (from to paths)
   (declare (type list-of-strings paths))
   (let ((keys (cl-json:encode-json-to-string *copyable-app-props*))
@@ -112,13 +115,58 @@
     (copy-paths (infoplist aapp) (infoplist atrampoline) *copyable-app-props*)))
 
 
+;;; sync-dock
+
+(defun realpath (f)
+  "Transform a string, optionally relative, into a an absolute path.
+
+Also resolves symlinks, if relevant.
+"
+  (uiop:ensure-pathname f
+                        :want-pathname t
+                        :ensure-absolute t
+                        :defaults (uiop:getcwd)
+                        :want-existing t
+                        :resolve-symlinks t))
+
+(defun sync-dock (apps)
+  "Every element must be a pathname to a real directory, not a symlink"
+  ;; Filtering for /nix/store is not technically part of the docs but let’s be
+  ;; conservative for now.
+  (let ((persistents (sh '(sh:pipe (dockutil #\L)
+                           (grep "file:///nix/store")
+                           ;; Whatever, this works.
+                           (grep "persistentApps")
+                           ;; I feel like using the bundle ID would be
+                           ;; cleaner (org.gnu.Emacs etc) but dockutil only
+                           ;; works reliably when I use the “bundle name”,
+                           ;; which is just the file’s basename without
+                           ;; extension. Ok.
+                           (cut #\f 1))
+                         :output :lines)))
+    (dolist (existing persistents)
+      (alex:when-let ((app (find existing apps :test #'equal :key #'pathname-name)))
+        ;; I was passed an app with the same name as an existing persistent dock
+        ;; item.  Yes this restarts after every item but I don’t know how to
+        ;; only restart exactly once.
+        (sh `(dockutil :add ,(realpath app) :replacing ,existing))))))
+
+
 ;;; CLI
 
 (defun print-usage ()
   (format T "Usage:
 
     apputil mktrampoline FROM.app TO.app
+    apputil sync-dock Foo.app Bar.app ...
 
+mktrampline creates a “trampoline” application launcher that immediately
+launches another application.
+
+sync-dock updates persistent items in your dock if any of the given apps has the
+same name. This can be used to programmatically keep pinned items in your dock
+up to date with potential new versions of an app outside of the /Applications
+directory, without having to check which one is pinned etc.
 "))
 
 (defun main ()
@@ -130,6 +178,8 @@
         (trivia:match args
           ((list "mktrampoline" from to)
            (create-trampoline from to))
+          ((list* "sync-dock" apps)
+           (sync-dock apps))
           (_
            (print-usage)
            (uiop:quit 1))))))

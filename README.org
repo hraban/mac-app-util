@@ -1,6 +1,9 @@
 * Utilities for Mac App launchers
 
 - =mktrampoline= :: Create a “trampoline” launcher app
+- =sync-dock= :: Update persistent apps in the Dock
+
+Made with Nix in mind.
 
 ** mktrampoline
 
@@ -15,3 +18,15 @@ Intuitively, you would either fully copy & paste the original .app, or create a 
 This trampoline script is indexed by Spotlight and by Launchpad, so you can keep launching your apps using =⌘ SPC <appname> ⏎=
 
 See https://github.com/nix-community/home-manager/issues/1341
+
+** sync-dock
+
+When you have an app in your Dock which doesn’t live in =/Applications/..=, it can get stale: e.g. your app at =/foo/v1/Foo.app= gets replaced by =/foo/v2/Foo.app=. To automatically update the Dock to the new location of Foo, execute:
+
+#+begin_src shell
+$ nix run github:hraban/apputil -- sync-dock Foo.app
+#+end_src
+
+It will find an old persistent item by the name of "Foo" and update it to the new location.
+
+N.B.: This is currently limited only to Nix apps, but actually it could work for anything. I’ve just kept it conservative to be on the safe side.
