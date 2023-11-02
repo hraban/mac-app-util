@@ -14,6 +14,5 @@ jobs:
         extra-conf: |
           substituters = https://cl-nix-lite.cachix.org https://cache.nixos.org/
           trusted-public-keys = cl-nix-lite.cachix.org-1:ab6+b0u2vxymMLcZ5DDqPKnxz0WObbMszmC+BDBHpFc= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-    - uses: DeterminateSystems/magic-nix-cache-action@main
     - name: Flake
       run: nix build
