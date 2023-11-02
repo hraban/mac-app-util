@@ -43,6 +43,15 @@
     "UTExportedTypeDeclarations")
   "Based on a hunch, nothing scientific.")
 
+
+;; Utility wrappers for inferior-shell
+
+(defun sh (&rest args)
+  (apply #'sh:run `(,@args :show ,(uiop:getenv "DEBUGSH"))))
+
+(defun sh/ss (&rest args)
+  (apply #'sh `(,@args :output (:string :stripped t))))
+
 (defun list-of-strings-p (l)
   (and (consp l) (every #'stringp l)))
 
@@ -51,21 +60,22 @@
 
 (defun copy-atom (from to path type)
   "Copy a value from one plist to another"
-  (let ((val (sh:run/ss `(,*plutil* -extract ,path raw -expect ,type #\o - -- ,from))))
-    (sh:run `(,*plutil* -replace ,path ,(format NIL "-~(~A~)" type) ,val -- ,to))))
+  (let ((val (sh/ss `(,*plutil* -extract ,path raw -expect ,type #\o - -- ,from))))
+    (sh `(,*plutil* -replace ,path ,(format NIL "-~(~A~)" type) ,val -- ,to))))
 
 (defun copy-array (from to path)
-  (let ((size (parse-integer (sh:run/ss `(,*plutil* -extract ,path raw -- ,from)))))
+  (let ((size (parse-integer (sh/ss `(,*plutil* -extract ,path raw -- ,from)))))
     ;; Initialize with a fresh array (idempotent)
-    (sh:run `(,*plutil* -replace ,path -array -- ,to))
+    (sh `(,*plutil* -replace ,path -array -- ,to))
     (dolist (index (alex:iota size))
       (let* ((nested (format NIL "~A.~A" path index))
              (type (get-type from nested)))
         (copy-path from to nested type)))))
 
 (defun copy-dict (from to path)
-  (let ((keys (sh:run/lines `(,*plutil* -extract ,path raw -- ,from))))
-    (sh:run `(,*plutil* -replace ,path -dictionary -- ,to))
+  (let ((keys (sh `(,*plutil* -extract ,path raw -- ,from)
+                  :output :lines)))
+    (sh `(,*plutil* -replace ,path -dictionary -- ,to))
     (dolist (key keys)
       (let* ((nested (format NIL "~A.~A" path (str:replace-all "." "\\." key)))
              (type (get-type from nested)))
@@ -74,8 +84,8 @@
 (defun get-type (plist path)
   (declare (type string plist)
            (type string path))
-  (multiple-value-bind (type _ status) (sh:run/ss `(,*plutil* -type ,path -o - -- ,plist)
-                                                  :on-error nil)
+  (multiple-value-bind (type _ status) (sh/ss `(,*plutil* -type ,path -o - -- ,plist)
+                                              :on-error nil)
     (declare (ignore _))
     (when (eql 0 status)
       (or (cdr (assoc type *type-map* :test #'equal))
@@ -108,15 +118,15 @@
   "Remove all icons from TO apps resources, and copy all icons FROM to it"
   (destructuring-bind (from-cnts to-cnts) (mapcar #'resources (list from to))
     ;; 🤷
-    (sh:run `(sh:and
-              (find ,to-cnts -name "*.icns" -delete)
-              (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts)))))
+    (sh `(sh:and
+          (find ,to-cnts -name "*.icns" -delete)
+          (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts)))))
 
 (defun create-trampoline (app trampoline)
   (let* ((cmd (format NIL "do shell script \"open '~A'\"" app)))
-    (sh:run `(sh:and
-              (rm -rf ,trampoline)
-              ("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd)))
+    (sh `(sh:and
+          (rm -rf ,trampoline)
+          ("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd)))
     (sync-icons app trampoline)
     (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)))
 
