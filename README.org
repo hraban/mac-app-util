@@ -2,6 +2,7 @@
 
 - =mktrampoline= :: Create a “trampoline” launcher app
 - =sync-dock= :: Update persistent apps in the Dock
+- =sync-trampolines= :: Create a directory with trampolines to all your apps
 
 Made with Nix in mind.
 
@@ -30,6 +31,18 @@ $ nix run github:hraban/mac-app-util -- sync-dock Foo.app
 It will find an old persistent item by the name of "Foo" and update it to the new location.
 
 N.B.: This is currently limited only to Nix apps, but actually it could work for anything. I’ve just kept it conservative to be on the safe side.
+
+** sync-trampolines
+
+Combines =mktrampoline= and =sync-dock= to create a fresh directory with a fresh trampoline for every source app. E.g.:
+
+#+begin_src shell
+$ nix run github:hraban/mac-app-util -- sync-trampolines ~/special/apps/ ~/Applications/Special/
+#+end_src
+
+Will create a fresh directory (=~/Applications/Special=), deleting if it already existed. In that directory it will create a trampoline app for every single =*.app= file it finds in =~/special/apps/=.
+
+This helps register apps from outside of your =~/Applications= directory with Spotlight and the Launchpad.
 
 * License
 

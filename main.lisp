@@ -119,14 +119,19 @@
           (find ,to-cnts -name "*.icns" -delete)
           (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts)))))
 
-(defun create-trampoline (app trampoline)
-  (let* ((aapp (merge-pathnames app (uiop:getcwd)))
-         (atrampoline (merge-pathnames trampoline (uiop:getcwd)))
-         (cmd (format NIL "do shell script \"open '~A'\"" aapp)))
-    (rm-rf atrampoline)
-    (sh `("/usr/bin/osacompile" #\o ,atrampoline #\e ,cmd))
-    (sync-icons aapp atrampoline)
-    (copy-paths (infoplist aapp) (infoplist atrampoline) *copyable-app-props*)))
+(defgeneric mktrampoline (from to))
+
+(defmethod mktrampoline ((app string) (trampoline string))
+  (mktrampoline (to-abs-dir app) (to-abs-dir trampoline)))
+
+(defmethod mktrampoline ((app pathname) (trampoline pathname))
+  (uiop:ensure-pathname app :ensure-absolute t)
+  (uiop:ensure-pathname trampoline :ensure-absolute t)
+  (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
+    (rm-rf trampoline)
+    (sh `("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd))
+    (sync-icons app trampoline)
+    (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)))
 
 
 ;;; sync-dock
@@ -172,6 +177,29 @@ Also resolves symlinks, if relevant.
         (sh `(dockutil :add ,(realpath app) :replacing ,existing))))))
 
 
+;;; sync-trampolines
+
+(defun to-abs-dir (d)
+  "Transform d into an absolute directory pathname."
+  (uiop:ensure-pathname d
+                        :ensure-absolute t
+                        :defaults (uiop:getcwd)
+                        :ensure-directory t))
+
+(defun directory-name (d)
+  ;; Weird lispism
+  (first (last (pathname-directory d))))
+
+(defun sync-trampolines (&rest args)
+  (destructuring-bind (from to) (mapcar #'to-abs-dir args)
+    (rm-rf to)
+    (ensure-directories-exist to)
+    (let ((apps (directory (merge-pathnames #p"*.app" from))))
+      (dolist (app apps)
+        (mktrampoline app (merge-pathnames (directory-name app) to)))
+      (sync-dock apps))))
+
+
 ;;; CLI
 
 (defun print-usage ()
@@ -197,9 +225,11 @@ directory, without having to check which one is pinned etc.
           (uiop:quit 0))
         (trivia:match args
           ((list "mktrampoline" from to)
-           (create-trampoline from to))
+           (mktrampoline from to))
           ((list* "sync-dock" apps)
            (sync-dock apps))
+          ((list "sync-trampolines" from to)
+           (sync-trampolines from to))
           (_
            (print-usage)
            (uiop:quit 1))))))
