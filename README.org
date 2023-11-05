@@ -6,6 +6,84 @@
 
 Made with Nix in mind.
 
+** How to use in Nix
+
+How to use this in nix-darwin or home-manager:
+
+#+begin_src nix
+{
+  inputs = {
+    #...
+    mac-app-util.url = "github:hraban/mac-app-util";
+    #...
+  };
+
+  outputs = {
+    nix-darwin
+    , home-manager
+    , ...
+  }@inputs: {
+    darwinConfigurations = {
+      MyHost = nix-darwin.lib.darwinSystem {
+        # ...
+        specialArgs = { inherit inputs; }
+        modules = [
+          home-manager.darwinModules.home-manager
+          (
+            { pkgs, config, inputs, ... }@module-inputs:
+            {
+              home-manager = {
+                # ...
+
+                extraSpecialArgs = { inherit (module-inputs) inputs; };
+                users.foobar.imports = [
+                  (
+                    { pkgs, inputs }:
+                    {
+                      home = {
+                        # ...
+
+                        # For home-manager controlled apps. See
+                        # https://github.com/nix-community/home-manager/issues/1341
+                        activation = {
+                          trampolineApps = let
+                            apps = pkgs.buildEnv {
+                              name = "home-manager-applications";
+                              paths = config.home.packages;
+                              pathsToLink = "/Applications";
+                            };
+                            mac-app-util = inputs.mac-app-util.packages.${pkgs.stdenv.system}.default;
+                          in lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                            fromDir="${apps}/Applications/"
+                            toDir="$HOME/Applications/Home Manager Trampolines"
+                            ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
+                        '';
+                        };
+
+                      };
+                    };
+                  )
+                ];
+              };
+
+
+              # For system-wide, nix-darwin packages. This works because the
+              # postActivation script is run after nix-darwin has aggregated all
+              # .app links into a single directory, /Applications/Nix Apps.
+              system.activationScripts.postActivation.text = let
+                mac-app-util = inputs.mac-app-util.packages.${pkgs.stdenv.system}.default;
+              in ''
+                ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
+              '';
+            }
+          )
+        ];
+      };
+    };
+  };
+}
+#+end_src
+
 ** mktrampoline
 
 This creates a “trampoline” launcher app which is a simple wrapper application that just launches your actual application.
