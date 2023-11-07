@@ -15,6 +15,23 @@
         "type": "github"
       }
     },
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1697816753,
+        "narHash": "sha256-40to80AEIyKCQI0xMKCeF5ePoIKTYgjVVCZeu4CnTxM=",
+        "owner": "hraban",
+        "repo": "flake-compat",
+        "rev": "6025bade1336a36014639bc3f67eacc853dab78f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hraban",
+        "ref": "fixed-output",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -49,6 +66,7 @@
     "root": {
       "inputs": {
         "cl-nix-lite": "cl-nix-lite",
+        "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs"
       }

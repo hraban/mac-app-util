@@ -15,9 +15,15 @@
 {
   inputs = {
     cl-nix-lite.url = "github:hraban/cl-nix-lite";
+    flake-compat = {
+      # Use my own fixed-output-derivation branch because I don’t want users to
+      # need to eval-time download dependencies.
+      url = "github:hraban/flake-compat/fixed-output";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, cl-nix-lite }:
+  outputs = { self, nixpkgs, flake-utils, cl-nix-lite, ... }:
     with flake-utils.lib; eachSystem (with system; [ x86_64-darwin aarch64-darwin ]) (system:
       with rec {
         pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
