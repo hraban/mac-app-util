@@ -235,6 +235,7 @@ Also resolves symlinks, if relevant.
 
     mac-app-util mktrampoline FROM.app TO.app
     mac-app-util sync-dock Foo.app Bar.app ...
+    mac-app-util sync-trampolines /my/nix/Applications /Applications/MyTrampolines/
 
 mktrampline creates a “trampoline” application launcher that immediately
 launches another application.
@@ -243,6 +244,10 @@ sync-dock updates persistent items in your dock if any of the given apps has the
 same name. This can be used to programmatically keep pinned items in your dock
 up to date with potential new versions of an app outside of the /Applications
 directory, without having to check which one is pinned etc.
+
+sync-trampolines is an all-in-1 solution that syncs an entire directory of *.app
+files to another by creating a trampoline launcher for every app, deleting the
+rest, and updating the dock.
 "))
 
 (defun main ()
