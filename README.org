@@ -8,7 +8,9 @@ Made with Nix in mind.
 
 ** How to use in Nix
 
-How to use this in nix-darwin or home-manager:
+*** Flakes
+
+How to use this in nix-darwin or home-manager, assuming you use flakes:
 
 #+begin_src nix
 {
@@ -84,6 +86,29 @@ How to use this in nix-darwin or home-manager:
 }
 #+end_src
 
+*** Non-flakes
+
+Since I use flakes for home manager and nix-darwin I’m not 100% on how to do this, but I suspect that it’s similar to the above, at its core.
+
+What will be different is the “plumbing”, i.e. how to get a reference to this app’s derivation. Here’s how:
+
+#+begin_src nix
+let
+  mac-app-util-src = pkgs.fetchFromGitHub {
+    repo = "mac-app-util";
+    owner = "hraban";
+    rev = "master";
+    # Replace this by the output of:
+    # nix run --experimental-features 'nix-command flakes' nixpkgs#nix-prefetch-github -- hraban mac-app-util | grep sha
+    hash = "";
+  };
+  mac-app-util = (pkgs.callPackage mac-app-util-src {}).default;
+in
+
+...
+#+end_src
+
+The rest is up to you. Good luck!
 ** mktrampoline
 
 This creates a “trampoline” launcher app which is a simple wrapper application that just launches your actual application.
