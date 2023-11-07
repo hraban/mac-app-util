@@ -56,6 +56,10 @@
     "UTExportedTypeDeclarations")
   "Based on a hunch, nothing scientific.")
 
+(defun rootp ()
+  "Am I the root user?"
+  (equal "root" (uiop:getenv "USER")))
+
 (defun sh (&rest args)
   ;; This is my personal convention; set DEBUGSH to anything to effect set -x
   (apply #'sh:run `(,@args :show ,(uiop:getenv "DEBUGSH"))))
@@ -158,23 +162,30 @@ Also resolves symlinks, if relevant.
   (setf (uiop:getenv "SUDO_USER") "")
   ;; Filtering for /nix/store is not technically part of the docs but let’s be
   ;; conservative for now.
-  (let ((persistents (sh '(sh:pipe (dockutil #\L)
-                           (grep "file:///nix/store")
-                           ;; Whatever, this works.
-                           (grep "persistentApps")
-                           ;; I feel like using the bundle ID would be
-                           ;; cleaner (org.gnu.Emacs etc) but dockutil only
-                           ;; works reliably when I use the “bundle name”,
-                           ;; which is just the file’s basename without
-                           ;; extension. Ok.
-                           (cut #\f 1))
-                         :output :lines)))
+  (let* ((dockutil-args (when (rootp)
+                          ;; When run as root, it’s probably intended to affect every
+                          ;; actual end-user’s dock--not the root.
+                          '(:allhomes)))
+         (persistents (sh `(sh:pipe (dockutil ,@dockutil-args #\L)
+                            (grep "file:///nix/store")
+                            ;; Whatever, this works.
+                            (grep "persistentApps")
+                            ;; I feel like using the bundle ID would be
+                            ;; cleaner (org.gnu.Emacs etc) but dockutil only
+                            ;; works reliably when I use the “bundle name”,
+                            ;; which is just the file’s basename without
+                            ;; extension. Ok.
+                            (cut #\f 1))
+                          :output :lines)))
     (dolist (existing persistents)
       (alex:when-let ((app (find existing apps :test #'equal :key #'pathname-name)))
         ;; I was passed an app with the same name as an existing persistent dock
         ;; item.  Yes this restarts after every item but I don’t know how to
         ;; only restart exactly once.
-        (sh `(dockutil :add ,(realpath app) :replacing ,existing))))))
+        (sh `(dockutil
+              ,@dockutil-args
+              :add ,(realpath app)
+              :replacing ,existing))))))
 
 
 ;;; sync-trampolines
