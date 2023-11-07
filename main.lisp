@@ -33,7 +33,7 @@
 
 (named-readtables:in-readtable :interpol-syntax)
 
-(defvar *plutil* "/usr/bin/plutil")
+(defparameter *plutil* "/usr/bin/plutil")
 
 (defparameter *copyable-app-props*
   '("CFBundleDevelopmentRegion"
@@ -56,13 +56,19 @@
     "UTExportedTypeDeclarations")
   "Based on a hunch, nothing scientific.")
 
+;; Extremely rudimentary support for DRY_RUN. It’s messy output, but what
+;; matters is that it doesn’t actually change anything on the system.
+(defparameter *dry-run* (uiop:getenv "DRY_RUN"))
+
 (defun rootp ()
   "Am I the root user?"
   (equal "root" (uiop:getenv "USER")))
 
 (defun sh (&rest args)
-  ;; This is my personal convention; set DEBUGSH to anything to effect set -x
-  (apply #'sh:run `(,@args :show ,(uiop:getenv "DEBUGSH"))))
+  (if *dry-run*
+      (format T "exec: ~A~%" (prin1-to-string (first args)))
+      ;; This is my personal convention; set DEBUGSH to effect set -x
+      (apply #'sh:run `(,@args :show ,(uiop:getenv "DEBUGSH")))))
 
 (defun sh/ss (&rest args)
   (apply #'sh `(,@args :output (:string :stripped t))))
@@ -73,15 +79,22 @@
   (rm-rf (uiop:parse-native-namestring p :ensure-directory t)))
 
 (defmethod rm-rf ((p pathname))
-  (uiop:delete-directory-tree
-   (uiop:ensure-directory-pathname p)
-   :validate t
-   :if-does-not-exist :ignore))
+  (if *dry-run*
+      (format T "rm -rf ~A~%" p)
+      (uiop:delete-directory-tree
+       (uiop:ensure-directory-pathname p)
+       :validate t
+       :if-does-not-exist :ignore)))
 
-(defmacro with-temp-dir ((dname) &body body)
-  `(let ((,dname (uiop:ensure-directory-pathname (sh/ss '(mktemp #\d)))))
-     (unwind-protect (progn ,@body)
-       (rm-rf ,dname))))
+(defmacro in-temp-dir (&body body)
+  (alex:with-gensyms (dir f)
+    `(flet ((,f () ,@body))
+       (if *dry-run*
+           (,f)
+           (let ((,dir (uiop:ensure-directory-pathname (sh/ss '(mktemp #\d)))))
+             (uiop:with-current-directory (,dir))
+             (unwind-protect (,f)
+               (rm-rf ,dir)))))))
 
 (defun list-of-strings-p (l)
   (and (consp l) (every #'stringp l)))
@@ -92,22 +105,26 @@
 
 ;;; mktrampoline
 
+(defun copy-file (from to)
+  (if *dry-run*
+      (format T "cp ~A ~A~%" from to)
+      (uiop:copy-file from to)))
+
 (defun copy-paths (from to paths)
   (declare (type list-of-strings paths))
   (let ((keys (cl-json:encode-json-to-string *copyable-app-props*))
         ;; For an object, keep only those keys from list “keys”
         (jqfilter "to_entries |[.[]| select(.key as $item| $keys | index($item) >= 0) ] | from_entries"))
-    (with-temp-dir (d)
-      (uiop:with-current-directory (d)
-        (uiop:copy-file from "orig")
-        (uiop:copy-file to "bare-wrapper")
-        (sh `(sh:and (,*plutil* -convert json -- orig)
-                     (,*plutil* -convert json -- bare-wrapper)
-                     (jq :argjson keys ,keys ,jqfilter (< orig) (> filtered))
-                     (sh:pipe (cat bare-wrapper filtered)
-                              (jq #\s add (> final)))
-                     (,*plutil* -convert xml1 -- final)))
-        (uiop:copy-file "final" to)))))
+    (in-temp-dir
+      (copy-file from "orig")
+      (copy-file to "bare-wrapper")
+      (sh `(sh:and (,*plutil* -convert json -- orig)
+                   (,*plutil* -convert json -- bare-wrapper)
+                   (jq :argjson keys ,keys ,jqfilter (< orig) (> filtered))
+                   (sh:pipe (cat bare-wrapper filtered)
+                            (jq #\s add (> final)))
+                   (,*plutil* -convert xml1 -- final)))
+      (copy-file "final" to))))
 
 (defun resources (app)
   #?"${app}/Contents/Resources/")
