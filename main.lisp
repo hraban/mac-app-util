@@ -56,9 +56,12 @@
     "UTExportedTypeDeclarations")
   "Based on a hunch, nothing scientific.")
 
+(defun non-empty-env-p (name)
+  (str:non-empty-string-p (uiop:getenv name)))
+
 ;; Extremely rudimentary support for DRY_RUN. It’s messy output, but what
 ;; matters is that it doesn’t actually change anything on the system.
-(defparameter *dry-run* (uiop:getenv "DRY_RUN"))
+(defparameter *dry-run* (non-empty-env-p "DRY_RUN"))
 
 (defun rootp ()
   "Am I the root user?"
@@ -68,7 +71,7 @@
   (if *dry-run*
       (format T "exec: ~A~%" (prin1-to-string (first args)))
       ;; This is my personal convention; set DEBUGSH to effect set -x
-      (apply #'sh:run `(,@args :show ,(uiop:getenv "DEBUGSH")))))
+      (apply #'sh:run `(,@args :show ,(non-empty-env-p "DEBUGSH")))))
 
 (defun sh/ss (&rest args)
   (apply #'sh `(,@args :output (:string :stripped t))))
