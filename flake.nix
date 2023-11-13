@@ -44,7 +44,7 @@
             nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
             postInstall = ''
               wrapProgramBinary "$out/bin/${name}" \
-                --suffix PATH : "${with pkgs; lib.makeBinPath [ dockutil rsync findutils ]}"
+                --suffix PATH : "${with pkgs; lib.makeBinPath [ dockutil rsync findutils jq ]}"
             '';
             installCheckPhase = ''
               $out/bin/${name} --help
