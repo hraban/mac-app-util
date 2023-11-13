@@ -92,9 +92,9 @@
        (if *dry-run*
            (,f)
            (let ((,dir (uiop:ensure-directory-pathname (sh/ss '(mktemp #\d)))))
-             (uiop:with-current-directory (,dir))
-             (unwind-protect (,f)
-               (rm-rf ,dir)))))))
+             (uiop:with-current-directory (,dir)
+               (unwind-protect (,f)
+                 (rm-rf ,dir))))))))
 
 (defun list-of-strings-p (l)
   (and (consp l) (every #'stringp l)))
