@@ -1,12 +1,13 @@
-* Utilities for Mac App launchers
-
-- =mktrampoline= :: Create a “trampoline” launcher app
-- =sync-dock= :: Update persistent apps in the Dock
-- =sync-trampolines= :: Create a directory with trampolines to all your apps
-
-Made with Nix in mind.
+* (Nix) Utilities for Mac App launchers
 
 ** How to use in Nix
+
+Use the home-manager module to "fix" your .app launchers:
+
+- Pinning in Dock works across updates
+- Launch from Spotlight
+
+Now you can launch Nix-installed apps using only your keyboard, using @@html:<kbd>@@⌘ space@@html:</kbd>@@.
 
 *** Flakes
 
@@ -52,8 +53,6 @@ How to use this in nix-darwin or home-manager, assuming you use flakes:
 }
 #+end_src
 
-This will automatically “do the right thing”.
-
 *** Non-flakes
 
 Since I use flakes for home manager and nix-darwin I’m not 100% on how to do this, but I suspect that it’s similar to the above, at its core.
@@ -84,6 +83,14 @@ mac-app-util.darwinModules.default
 #+end_src
 
 The rest is up to you. Good luck!
+** Commands
+
+At the core of this project is a (Nix-agnostic) program that can:
+
+- =mktrampoline= :: Create a “trampoline” launcher app
+- =sync-dock= :: Update persistent apps in the Dock
+- =sync-trampolines= :: Create a directory with trampolines to all your apps
+
 ** mktrampoline
 
 This creates a “trampoline” launcher app which is a simple wrapper application that just launches your actual application.
