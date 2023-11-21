@@ -23,63 +23,36 @@ How to use this in nix-darwin or home-manager, assuming you use flakes:
   outputs = {
     nix-darwin
     , home-manager
+    , mac-app-util
     , ...
-  }@inputs: {
+  }: {
     darwinConfigurations = {
       MyHost = nix-darwin.lib.darwinSystem {
         # ...
-        specialArgs = { inherit inputs; }
+
         modules = [
+          mac-app-util.darwinModules.default
+
+          # And if you also use home manager:
           home-manager.darwinModules.home-manager
           (
-            { pkgs, config, inputs, ... }@module-inputs:
+            { pkgs, config, inputs, ... }:
             {
-              home-manager = {
-                # ...
-
-                extraSpecialArgs = { inherit (module-inputs) inputs; };
-                users.foobar.imports = [
-                  (
-                    { pkgs, inputs }:
-                    {
-                      home = {
-                        # ...
-
-                        # For home-manager controlled apps. See
-                        # https://github.com/nix-community/home-manager/issues/1341
-                        activation = {
-                          trampolineApps = let
-                            mac-app-util = inputs.mac-app-util.packages.${pkgs.stdenv.system}.default;
-                          in lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-                            fromDir="$HOME/Applications/Home Manager Apps"
-                            toDir="$HOME/Applications/Home Manager Trampolines"
-                            ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
-                        '';
-                        };
-
-                      };
-                    };
-                  )
-                ];
-              };
-
-
-              # For system-wide, nix-darwin packages. This works because the
-              # postActivation script is run after nix-darwin has aggregated all
-              # .app links into a single directory, /Applications/Nix Apps.
-              system.activationScripts.postActivation.text = let
-                mac-app-util = inputs.mac-app-util.packages.${pkgs.stdenv.system}.default;
-              in ''
-                ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
-              '';
+              home-manager.users.foobar.imports = [
+                #...
+                mac-app-util.homeManagerModules.default
+              ];
             }
           )
+
         ];
       };
     };
   };
 }
 #+end_src
+
+This will automatically “do the right thing”.
 
 *** Non-flakes
 
@@ -97,10 +70,17 @@ let
     # nix run --experimental-features 'nix-command flakes' nixpkgs#nix-prefetch-github -- hraban mac-app-util | grep sha
     hash = "";
   };
-  mac-app-util = (pkgs.callPackage mac-app-util-src {}).default;
+  mac-app-util = (pkgs.callPackage mac-app-util-src {});
 in
 
-...
+# Now you have either the program as a derivation itself:
+mac-app-util.default
+
+# Or the home manager module:
+mac-app-util.homeManagerModules.default
+
+# Or darwin:
+mac-app-util.darwinModules.default
 #+end_src
 
 The rest is up to you. Good luck!

@@ -24,7 +24,32 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, cl-nix-lite, ... }:
-    with flake-utils.lib; eachSystem (with system; [ x86_64-darwin aarch64-darwin ]) (system:
+    {
+      homeManagerModules.default = { pkgs, lib, ... }: {
+        assertions = [ {
+          assertion = builtins.hasAttr pkgs.stdenv.system self.packages;
+          message = "mac-app-util home manager module: Unsupported architecture ${pkgs.stdenv.system}. Supported: ${builtins.toString (builtins.attrNames self.packages)}";
+        } ];
+        home.activation = {
+          trampolineApps = let
+            mac-app-util = self.packages.${pkgs.stdenv.system}.default;
+          in lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            fromDir="$HOME/Applications/Home Manager Apps"
+            toDir="$HOME/Applications/Home Manager Trampolines"
+            ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
+          '';
+        };
+      };
+      darwinModules.default = { pkgs, ... }: {
+        system.activationScripts.postActivation.text = let
+          mac-app-util = self.packages.${pkgs.stdenv.system}.default;
+        in ''
+          ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
+        '';
+      };
+    }
+    //
+    (with flake-utils.lib; eachSystem (with system; [ x86_64-darwin aarch64-darwin ]) (system:
       with rec {
         pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
       };
@@ -53,5 +78,5 @@
             meta.license = pkgs.lib.licenses.agpl3Only;
           };
         };
-      });
+      }));
 }
