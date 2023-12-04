@@ -189,15 +189,15 @@ Also resolves symlinks, if relevant.
                           ;; actual end-user’s dock--not the root.
                           '(:allhomes)))
          (persistents (sh `(sh:pipe (dockutil ,@dockutil-args #\L)
-                            (grep "file:///nix/store")
-                            ;; Whatever, this works.
-                            (grep "persistentApps")
-                            ;; I feel like using the bundle ID would be
-                            ;; cleaner (org.gnu.Emacs etc) but dockutil only
-                            ;; works reliably when I use the “bundle name”,
-                            ;; which is just the file’s basename without
-                            ;; extension. Ok.
-                            (cut #\f 1))
+                                    (grep "file:///nix/store")
+                                    ;; Whatever, this works.
+                                    (grep "persistentApps")
+                                    ;; I feel like using the bundle ID would be
+                                    ;; cleaner (org.gnu.Emacs etc) but dockutil only
+                                    ;; works reliably when I use the “bundle name”,
+                                    ;; which is just the file’s basename without
+                                    ;; extension. Ok.
+                                    (cut #\f 1))
                           :output :lines)))
     (dolist (existing persistents)
       (alex:when-let ((app (find existing apps :test #'equal :key #'pathname-name)))
