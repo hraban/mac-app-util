@@ -174,6 +174,14 @@ Also resolves symlinks, if relevant.
                         :want-existing t
                         :resolve-symlinks t))
 
+(defgeneric path-without-slash (p))
+
+(defmethod path-without-slash ((p string))
+  p)
+
+(defmethod path-without-slash ((p pathname))
+  (string-right-trim "/" (namestring p)))
+
 (defun sync-dock (apps)
   "Every element must be a pathname to a real directory, not a symlink"
   ;; dockutil doesn't like acting under sudo and will fall back to the original
@@ -200,7 +208,10 @@ Also resolves symlinks, if relevant.
                                     (cut #\f 1))
                           :output :lines)))
     (dolist (existing persistents)
-      (alex:when-let ((app (find existing apps :test #'equal :key #'pathname-name)))
+      (alex:when-let ((app (find existing
+                                 (mapcar #'path-without-slash apps)
+                                 :test #'equal
+                                 :key #'pathname-name)))
         ;; I was passed an app with the same name as an existing persistent dock
         ;; item.  Yes this restarts after every item but I don’t know how to
         ;; only restart exactly once.
