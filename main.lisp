@@ -177,10 +177,10 @@ Also resolves symlinks, if relevant.
 (defgeneric path-without-slash (p))
 
 (defmethod path-without-slash ((p string))
-  p)
+  (string-right-trim "/" p))
 
 (defmethod path-without-slash ((p pathname))
-  (string-right-trim "/" (namestring p)))
+  (path-without-slash (namestring p)))
 
 (defun sync-dock (apps)
   "Every element must be a pathname to a real directory, not a symlink"
