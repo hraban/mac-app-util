@@ -148,7 +148,9 @@
 (defgeneric mktrampoline (from to))
 
 (defmethod mktrampoline ((app string) (trampoline string))
-  (mktrampoline (to-abs-dir app) (to-abs-dir trampoline)))
+  (mktrampoline (to-abs-dir app) (uiop:ensure-pathname trampoline
+                                                       :ensure-absolute t
+                                                       :defaults (uiop:getcwd))))
 
 (defmethod mktrampoline ((app pathname) (trampoline pathname))
   (uiop:ensure-pathname app :ensure-absolute t)
