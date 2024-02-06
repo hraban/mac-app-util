@@ -145,21 +145,36 @@
           (find ,to-cnts -name "*.icns" -delete)
           (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts)))))
 
-(defgeneric mktrampoline (from to))
-
-(defmethod mktrampoline ((app string) (trampoline string))
-  (mktrampoline (to-abs-dir app) (uiop:ensure-pathname trampoline
-                                                       :ensure-absolute t
-                                                       :defaults (uiop:getcwd))))
-
-(defmethod mktrampoline ((app pathname) (trampoline pathname))
-  (uiop:ensure-pathname app :ensure-absolute t)
-  (uiop:ensure-pathname trampoline :ensure-absolute t)
+(defun mktrampoline-app (app trampoline)
   (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
-    (rm-rf trampoline)
     (sh `("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd))
     (sync-icons app trampoline)
     (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)))
+
+(defun mktrampoline-bin (bin trampoline)
+  ;; In order for applescript not to wait on the binary you must direct both
+  ;; output pipes to null.
+  (let ((cmd (format NIL "do shell script \"'~A' &> /dev/null &\"" bin)))
+    (sh `("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd))))
+
+(defgeneric mktrampoline (from to))
+
+(defmethod mktrampoline ((from string) (to string))
+  (let ((from-abs (probe-file from)))
+    (when (null from-abs)
+      (error "No such file: ~A" from))
+    (mktrampoline from-abs (uiop:ensure-pathname to
+                                                 :ensure-absolute t
+                                                 :defaults (uiop:getcwd)))))
+
+(defmethod mktrampoline ((from pathname) (to pathname))
+  (uiop:ensure-pathname from :ensure-absolute t)
+  (uiop:ensure-pathname to :ensure-absolute t)
+  (if (uiop:directory-pathname-p from)
+      (if (str:ends-with-p ".app" (first (last (pathname-directory from))))
+          (mktrampoline-app from to)
+          (error "Directory ~A does not end in ‘.app’ is this a Mac app?" from))
+      (mktrampoline-bin from to)))
 
 
 ;;; sync-dock

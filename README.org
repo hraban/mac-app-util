@@ -6,6 +6,7 @@ Use the home-manager module to "fix" your .app launchers:
 
 - Pinning in Dock works across updates
 - Launch from Spotlight
+- Create .app wrappers for non-app bundle, stand-alone binary programs
 
 Now you can launch Nix-installed apps using only your keyboard, using @@html:<kbd>@@⌘ space@@html:</kbd>@@.
 
@@ -102,6 +103,14 @@ $ nix run github:hraban/mac-app-util -- mktrampoline /path/to/MyApp.app /Applica
 Intuitively, you would either fully copy & paste the original .app, or create a symlink or “alias”; all of those solutions have different problems and they don’t get indexed by Spotlight properly.
 
 This trampoline script is indexed by Spotlight and by Launchpad, so you can keep launching your apps using =⌘ SPC <appname> ⏎=
+
+You can also wrap non-app stand-alone binaries with this. For example:
+
+#+begin_src shell
+$ nix run github:hraban/mac-app-util -- mktrampoline "$(which darktable)" ~/Applications/Darktable.app
+#+end_src
+
+Darktable is a photo editor available on Mac but without a .app bundle in the derivation. It’s just a stand-alone binary. Using mktrampoline, you can make it launchable from Spotlight.
 
 See https://github.com/nix-community/home-manager/issues/1341
 
