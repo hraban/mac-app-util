@@ -40,6 +40,12 @@ How to use this in nix-darwin or home-manager, assuming you use flakes:
           (
             { pkgs, config, inputs, ... }:
             {
+              # To enable it for all users:
+              home-manager.sharedModules = [
+                mac-app-util.homeManagerModules.default
+              ];
+
+              # Or to enable it for a single user only:
               home-manager.users.foobar.imports = [
                 #...
                 mac-app-util.homeManagerModules.default
