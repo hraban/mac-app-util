@@ -16,3 +16,10 @@ jobs:
           trusted-public-keys = cl-nix-lite.cachix.org-1:ab6+b0u2vxymMLcZ5DDqPKnxz0WObbMszmC+BDBHpFc= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
     - name: Flake
       run: nix build
+
+  nocommit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nobssoftware/nocommit@v1
+        name: nocommit
