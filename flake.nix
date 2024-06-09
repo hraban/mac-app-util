@@ -14,6 +14,8 @@
 
 {
   inputs = {
+    # This has SBCL 2.4.5 and docktuil 3.1.3 which are known to work
+    nixpkgs.url = "github:NixOS/nixpkgs/cd18e2ae9ab8e2a0a8d715b60c91b54c0ac35ff9";
     cl-nix-lite.url = "github:hraban/cl-nix-lite";
     flake-compat = {
       # Use my own fixed-output-derivation branch because I don’t want users to
