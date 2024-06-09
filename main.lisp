@@ -214,7 +214,7 @@ Also resolves symlinks, if relevant.
                           ;; actual end-user’s dock--not the root.
                           '(:allhomes)))
          (persistents (sh `(sh:pipe (dockutil ,@dockutil-args #\L)
-                                    (grep "file:///nix/store")
+                                    (grep "/nix/store")
                                     ;; Whatever, this works.
                                     (grep "persistentApps")
                                     ;; I feel like using the bundle ID would be
