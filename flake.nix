@@ -57,7 +57,13 @@
       };
       {
         packages = {
-          default = with pkgs.lispPackagesLite; lispScript rec {
+          default = pkgs.callPackage ({
+            lispPackagesLite
+          , dockutil
+          , findutils
+          , jq
+          , rsync
+          }: with lispPackagesLite; lispScript rec {
             name = "mac-app-util";
             src = ./main.lisp;
             dependencies = [
@@ -71,14 +77,19 @@
             nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
             postInstall = ''
               wrapProgramBinary "$out/bin/${name}" \
-                --suffix PATH : "${with pkgs; lib.makeBinPath [ dockutil rsync findutils jq ]}"
+                --suffix PATH : "${with pkgs; lib.makeBinPath [
+                  dockutil
+                  rsync
+                  findutils
+                  jq
+                ]}"
             '';
             installCheckPhase = ''
               $out/bin/${name} --help
             '';
             doInstallCheck = true;
             meta.license = pkgs.lib.licenses.agpl3Only;
-          };
+          }) {};
         };
       }));
 }
