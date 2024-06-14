@@ -71,9 +71,9 @@ let
   mac-app-util-src = pkgs.fetchFromGitHub {
     repo = "mac-app-util";
     owner = "hraban";
-    rev = "master";
-    # Replace this by the output of:
-    # nix run --experimental-features 'nix-command flakes' nixpkgs#nix-prefetch-github -- hraban mac-app-util | grep sha
+    # Replace these two lines by the corresponding entries from:
+    # $ nix run --experimental-features 'nix-command flakes' nixpkgs#nix-prefetch-github -- hraban mac-app-util
+    rev = "";
     hash = "";
   };
   mac-app-util = (pkgs.callPackage mac-app-util-src {});
