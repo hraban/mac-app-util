@@ -137,6 +137,10 @@
 (defun infoplist (app)
   #?"${app}/Contents/Info.plist")
 
+(defun app-p (path)
+  "Is this path a .app bundle?"
+  (probe-file (infoplist path)))
+
 (defun sync-icons (from to)
   "Remove all icons from TO apps resources, and copy all icons FROM to it"
   (destructuring-bind (from-cnts to-cnts) (mapcar #'resources (list from to))
@@ -171,9 +175,9 @@
   (uiop:ensure-pathname from :ensure-absolute t)
   (uiop:ensure-pathname to :ensure-absolute t)
   (if (uiop:directory-pathname-p from)
-      (if (str:ends-with-p ".app" (first (last (pathname-directory from))))
+      (if (app-p from)
           (mktrampoline-app from to)
-          (error "Directory ~A does not end in ‘.app’ is this a Mac app?" from))
+          (error "Path ~A does appear to be a Mac app (missing Info.plist)" from))
       (mktrampoline-bin from to)))
 
 
