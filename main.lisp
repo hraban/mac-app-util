@@ -150,7 +150,16 @@
           (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts)))))
 
 (defun mktrampoline-app (app trampoline)
-  (let ((cmd (format NIL "tell application \"~A\" to activate" app)))
+  ;; TODO: how do you pass the argv?
+  (let ((cmd (format NIL "
+on run argv
+  tell application \"~A\" to activate
+end run
+
+on open names
+  tell application \"~:*~A\" to open names
+end open
+" app)))
     (sh `("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd))
     (sync-icons app trampoline)
     (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)))

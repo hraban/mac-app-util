@@ -7,6 +7,7 @@ Use the home-manager module to "fix" your .app launchers:
 - Pinning in Dock works across updates
 - Launch from Spotlight
 - Create .app wrappers for non-app bundle, stand-alone binary programs
+- Support “open with...”
 
 Now you can launch Nix-installed apps using only your keyboard, using @@html:<kbd>@@⌘ space@@html:</kbd>@@.
 
