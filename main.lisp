@@ -256,11 +256,22 @@ Also resolves symlinks, if relevant.
   ;; Weird lispism
   (first (last (pathname-directory d))))
 
+(defun gather-apps (dir)
+  (mapcan (lambda (pattern)
+            (directory (merge-pathnames pattern dir)))
+          ;; Kind of a cheat, but I’ve noticed some apps nest themselves one
+          ;; directory further, e.g. KDE apps in /Applications/Nix
+          ;; Apps/KDE/Foo.app.  There are many ways to deal with this, but
+          ;; honestly just hard-coding one extra level of search is probably the
+          ;; easiest.  This nexting won’t survive in the trampoline directory,
+          ;; but that doesn’t seem to matter.
+          '(#p "*.app" #p "*/*.app")))
+
 (defun sync-trampolines (&rest args)
   (destructuring-bind (from to) (mapcar #'to-abs-dir args)
     (rm-rf to)
     (ensure-directories-exist to)
-    (let ((apps (directory (merge-pathnames #p"*.app" from))))
+    (let ((apps (gather-apps from)))
       (dolist (app apps)
         (mktrampoline app (merge-pathnames (directory-name app) to)))
       (sync-dock apps))))
