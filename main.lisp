@@ -144,10 +144,11 @@
 (defun sync-icons (from to)
   "Remove all icons from TO apps resources, and copy all icons FROM to it"
   (destructuring-bind (from-cnts to-cnts) (mapcar #'resources (list from to))
-    ;; 🤷
-    (sh `(sh:and
-          (find ,to-cnts -name "*.icns" -delete)
-          (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts)))))
+    (when (probe-file from-cnts)
+      ;; 🤷
+      (sh `(sh:and
+            (find ,to-cnts -name "*.icns" -delete)
+            (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts))))))
 
 (defun mktrampoline-app (app trampoline)
   (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
