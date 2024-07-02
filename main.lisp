@@ -275,10 +275,12 @@ Also resolves symlinks, if relevant.
     mac-app-util sync-trampolines /my/nix/Applications /Applications/MyTrampolines/
 
 mktrampline creates a “trampoline” application launcher that immediately
-launches another application.
+launches another application.  FROM refers to the app to launch, TO is where you
+create your thin application wrapper.  This also works to wrap regular binaries,
+if you want.  I’m not a huge fan but it does work.
 
 sync-dock updates persistent items in your dock if any of the given apps has the
-same name. This can be used to programmatically keep pinned items in your dock
+same name.  This can be used to programmatically keep pinned items in your dock
 up to date with potential new versions of an app outside of the /Applications
 directory, without having to check which one is pinned etc.
 
