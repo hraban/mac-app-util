@@ -27,19 +27,29 @@
 
   outputs = { self, nixpkgs, flake-utils, cl-nix-lite, ... }:
     {
-      homeManagerModules.default = { pkgs, lib, ... }: {
-        assertions = [ {
-          assertion = builtins.hasAttr pkgs.stdenv.system self.packages;
-          message = "mac-app-util home manager module: Unsupported architecture ${pkgs.stdenv.system}. Supported: ${builtins.toString (builtins.attrNames self.packages)}";
-        } ];
-        home.activation = {
-          trampolineApps = let
-            mac-app-util = self.packages.${pkgs.stdenv.system}.default;
-          in lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-            fromDir="$HOME/Applications/Home Manager Apps"
-            toDir="$HOME/Applications/Home Manager Trampolines"
-            ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
-          '';
+      homeManagerModules.default = { pkgs, lib, config, ... }: {
+        options = with lib; {
+          targets.darwin.mac-app-util.enable = mkOption {
+            type = types.bool;
+            default = builtins.hasAttr pkgs.stdenv.system self.packages;
+            example = true;
+            description = "Whether to enable mac-app-util home manager integration";
+          };
+        };
+        config = lib.mkIf config.targets.darwin.mac-app-util.enable {
+          assertions = [ {
+            default = builtins.hasAttr pkgs.stdenv.system self.packages;
+            message = "mac-app-util home manager module: Unsupported architecture ${pkgs.stdenv.system}. Supported: ${builtins.toString (builtins.attrNames self.packages)}";
+          } ];
+          home.activation = {
+            trampolineApps = let
+              mac-app-util = self.packages.${pkgs.stdenv.system}.default;
+            in lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+              fromDir="$HOME/Applications/Home Manager Apps"
+              toDir="$HOME/Applications/Home Manager Trampolines"
+              ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
+            '';
+          };
         };
       };
       darwinModules.default = { pkgs, ... }: {
