@@ -37,10 +37,6 @@
           };
         };
         config = lib.mkIf config.targets.darwin.mac-app-util.enable {
-          assertions = [ {
-            default = builtins.hasAttr pkgs.stdenv.system self.packages;
-            message = "mac-app-util home manager module: Unsupported architecture ${pkgs.stdenv.system}. Supported: ${builtins.toString (builtins.attrNames self.packages)}";
-          } ];
           home.activation = {
             trampolineApps = let
               mac-app-util = self.packages.${pkgs.stdenv.system}.default;
