@@ -1,18 +1,21 @@
 * (Nix) Utilities for Mac App launchers
 
-** How to use in Nix
+This is a [[https://nixos.org][Nix]] module for Macintosh computers (“darwin”) which fixes a few common problems encountered by users of Nix on Macs:
 
-Use the home-manager module to "fix" your .app launchers:
-
-- Pinning in Dock works across updates
-- Launch from Spotlight
-- Create .app wrappers for non-app bundle, stand-alone binary programs
+- Launching .app programs from Spotlight
+- Pinning a .app in the Dock, even across Nix updates
 
 Now you can launch Nix-installed apps using only your keyboard, using @@html:<kbd>@@⌘ space@@html:</kbd>@@.
 
-*** Flakes
+You can also use it to create .app wrappers for non-.app programs, aka stand-alone binary programs, aka non-bundle programs.
 
-How to use this in nix-darwin or home-manager, assuming you use flakes:
+** How to use
+
+It works in [[https://github.com/nix-community/home-manager][home-manager]] and [[https://github.com/LnL7/nix-darwin][nix-darwin]] by providing a module for both.  You just need to load the module, nothing else, and it will automatically run every time you =switch= your config.
+
+Home-manager and nix-darwin aren’t either-or: you can have both, and you can install .app bundles on your mac through both (some user specific using home-manager, some system wide using nix-darwin).  In that case you’d want to load both the nix-darwin module, and the home-manager module at the same time in their respective configurations.
+
+*** Flakes, home-manager through nix-darwin
 
 #+begin_src nix
 {
