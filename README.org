@@ -15,7 +15,52 @@ It works in [[https://github.com/nix-community/home-manager][home-manager]] and 
 
 Home-manager and nix-darwin aren’t either-or: you can have both, and you can install .app bundles on your mac through both (some user specific using home-manager, some system wide using nix-darwin).  In that case you’d want to load both the nix-darwin module, and the home-manager module at the same time in their respective configurations.
 
-*** Flakes, home-manager through nix-darwin
+*** Flakes, just home-manager
+
+Only using home-manager, no nix-darwin (yet)? You can import the home-manager module directly:
+
+#+begin_src nix
+{
+  description = "Minimal Flake for macOS with home-manager and mac-app-util";
+
+  inputs = {
+    mac-app-util.url = "github:hraban/mac-app-util";
+  };
+
+  outputs = { self, nixpkgs, home-manager, mac-app-util, ... }: let
+    username = "jdoe";
+    system = "aarch64-darwin";
+  in {
+    homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
+      pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+      modules = [
+        mac-app-util.homeManagerModules.default
+        ({ pkgs, ... }: {
+          home = {
+            inherit username;
+            homeDirectory = "/Users/${username}";
+            # This is where you would install any programs as usual:
+            packages = with pkgs; [
+              ripgrep
+              vim
+
+              # What mac-app-util does for you, is that you can also just
+              # install derivations here which have a `/Applications/`
+              # directory, and it will be available in Spotlight and in your App
+              # Launcher, no further configuration needed:
+              vscode
+              iterm2
+            ];
+            stateVersion = "24.05";
+          };
+        })
+      ];
+    };
+  };
+}
+#+end_src
+
+*** Flakes, nix-darwin (with or without home-manager)
 
 #+begin_src nix
 {
@@ -63,23 +108,20 @@ Home-manager and nix-darwin aren’t either-or: you can have both, and you can i
 }
 #+end_src
 
-*** Non-flakes
+*** Non-flakes, aka “channels”
 
-Since I use flakes for home manager and nix-darwin I’m not 100% on how to do this, but I suspect that it’s similar to the above, at its core.
-
-What will be different is the “plumbing”, i.e. how to get a reference to this app’s derivation. Here’s how:
+This is similar to the above. What will be different is the “plumbing”, i.e. how to get a reference to this app’s derivation. Here’s how:
 
 #+begin_src nix
 let
-  mac-app-util-src = pkgs.fetchFromGitHub {
-    repo = "mac-app-util";
-    owner = "hraban";
-    # Replace these two lines by the corresponding entries from:
-    # $ nix run --experimental-features 'nix-command flakes' nixpkgs#nix-prefetch-github -- hraban mac-app-util
-    rev = "";
-    hash = "";
+  mac-app-util-src = builtins.fetchTarball "https://github.com/hraban/mac-app-util/archive/master.tar.gz";
+  # I advise using the long form with a pinned hash instead
+  mac-app-util-src = builtins.fetchTarball {
+    url = "https://github.com/hraban/mac-app-util/archive/abcdef123456abcdef123456.tar.gz";
+    # Run it once, lift the hash from the error, paste it here and run again
+    sha256 = "";
   };
-  mac-app-util = (pkgs.callPackage mac-app-util-src {});
+  mac-app-util = import mac-app-util-src {};
 in
 
 # Now you have either the program as a derivation itself:
@@ -92,7 +134,32 @@ mac-app-util.homeManagerModules.default
 mac-app-util.darwinModules.default
 #+end_src
 
-The rest is up to you. Good luck!
+Example:
+
+#+begin_src nix
+{ config, pkgs, ... }:
+
+let
+  mac-app-util-src = builtins.fetchTarball "https://github.com/hraban/mac-app-util/archive/master.tar.gz";
+  mac-app-util = import mac-app-util-src {};
+in
+
+{
+  home = {
+    username = "jdoe";
+    homeDirectory = "/Users/jdoe";
+    stateVersion = "24.05";
+    packages = with pkgs; [
+      iterm2
+    ];
+  };
+  programs.home-manager.enable = true;
+  imports = [
+    mac-app-util.homeManagerModules.default
+  ];
+}
+#+end_src
+
 ** Commands
 
 At the core of this project is a (Nix-agnostic) program that can:
