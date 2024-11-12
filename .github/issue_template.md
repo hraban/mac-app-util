@@ -2,7 +2,7 @@
 
 Thanks for reporting a bug.
 
-If you fill out every section I can try to help.  If you don’t I’ll end up copy / pasting these questions again becausae I need them to at least try and reproduce the issue.
+If you fill out every section I can try to help.  If you don’t I’ll end up copy / pasting these questions again because I need them to at least try and reproduce the issue.
 
 If your issue doesn’t fit this template, just be aware that the first thing I have to do is reproduce your issue.  I can’t do any debugging until I can reproduce the bug.
 
