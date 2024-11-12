@@ -178,7 +178,7 @@
   (if (uiop:directory-pathname-p from)
       (if (app-p from)
           (mktrampoline-app from to)
-          (error "Path ~A does appear to be a Mac app (missing Info.plist)" from))
+          (error "Path ~A does not appear to be a Mac app (missing Info.plist)" from))
       (mktrampoline-bin from to)))
 
 
