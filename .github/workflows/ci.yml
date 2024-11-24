@@ -8,12 +8,16 @@ jobs:
   nix:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: DeterminateSystems/nix-installer-action@main
       with:
         extra-conf: |
           substituters = https://cl-nix-lite.cachix.org https://cache.nixos.org/
           trusted-public-keys = cl-nix-lite.cachix.org-1:ab6+b0u2vxymMLcZ5DDqPKnxz0WObbMszmC+BDBHpFc= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@v16
+    - name: Configure Nix cache
+      uses: DeterminateSystems/magic-nix-cache-action@v8
     - name: Flake
       run: nix build
 
