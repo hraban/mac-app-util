@@ -61,3 +61,4 @@ $ nix-info -m
 ```
 
 - [ ] I have substituted **7** sections in this template.
+- [ ] I have tested this with the `nixpkgs-unstable` branch and the problem persists
