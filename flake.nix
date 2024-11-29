@@ -23,6 +23,11 @@
       url = "github:hraban/flake-compat/fixed-output";
       flake = false;
     };
+    systems.url = "github:nix-systems/default-darwin";
+    flake-utils = {
+      url = "flake-utils";
+      inputs.systems.follows = "systems";
+    };
   };
 
   outputs = { self, nixpkgs, flake-utils, cl-nix-lite, ... }:
@@ -57,11 +62,10 @@
       };
     }
     //
-    (with flake-utils.lib; eachSystem (with system; [ x86_64-darwin aarch64-darwin ]) (system:
-      with rec {
+    (with flake-utils.lib; eachDefaultSystem (system:
+      let
         pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
-      };
-      {
+      in {
         packages = {
           default = pkgs.callPackage ({
             lispPackagesLite
