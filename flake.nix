@@ -30,81 +30,113 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, cl-nix-lite, ... }:
+  outputs =
     {
-      homeManagerModules.default = { pkgs, lib, config, ... }: {
-        options = with lib; {
-          targets.darwin.mac-app-util.enable = mkOption {
-            type = types.bool;
-            default = builtins.hasAttr pkgs.stdenv.system self.packages;
-            example = true;
-            description = "Whether to enable mac-app-util home manager integration";
+      self,
+      nixpkgs,
+      flake-utils,
+      cl-nix-lite,
+      ...
+    }:
+    {
+      homeManagerModules.default =
+        {
+          pkgs,
+          lib,
+          config,
+          ...
+        }:
+        {
+          options = with lib; {
+            targets.darwin.mac-app-util.enable = mkOption {
+              type = types.bool;
+              default = builtins.hasAttr pkgs.stdenv.system self.packages;
+              example = true;
+              description = "Whether to enable mac-app-util home manager integration";
+            };
+          };
+          config = lib.mkIf config.targets.darwin.mac-app-util.enable {
+            home.activation = {
+              trampolineApps =
+                let
+                  mac-app-util = self.packages.${pkgs.stdenv.system}.default;
+                in
+                lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                  fromDir="$HOME/Applications/Home Manager Apps"
+                  toDir="$HOME/Applications/Home Manager Trampolines"
+                  ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
+                '';
+            };
           };
         };
-        config = lib.mkIf config.targets.darwin.mac-app-util.enable {
-          home.activation = {
-            trampolineApps = let
+      darwinModules.default =
+        { pkgs, ... }:
+        {
+          system.activationScripts.postActivation.text =
+            let
               mac-app-util = self.packages.${pkgs.stdenv.system}.default;
-            in lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-              fromDir="$HOME/Applications/Home Manager Apps"
-              toDir="$HOME/Applications/Home Manager Trampolines"
-              ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
+            in
+            ''
+              ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
             '';
-          };
         };
-      };
-      darwinModules.default = { pkgs, ... }: {
-        system.activationScripts.postActivation.text = let
-          mac-app-util = self.packages.${pkgs.stdenv.system}.default;
-        in ''
-          ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
-        '';
-      };
     }
-    //
-    (with flake-utils.lib; eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
-      in {
-        checks = {
-          default = self.packages.${system}.default;
-        };
-        packages = {
-          default = pkgs.callPackage ({
-            lispPackagesLite
-          , dockutil
-          , findutils
-          , jq
-          , rsync
-          }: with lispPackagesLite; lispScript rec {
-            name = "mac-app-util";
-            src = ./main.lisp;
-            dependencies = [
-              alexandria
-              inferior-shell
-              cl-interpol
-              cl-json
-              str
-              trivia
-            ];
-            nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
-            postInstall = ''
-              wrapProgramBinary "$out/bin/${name}" \
-                --suffix PATH : "${with pkgs; lib.makeBinPath [
-                  dockutil
-                  rsync
-                  findutils
-                  jq
-                ]}"
-            '';
-            installCheckPhase = ''
-              $out/bin/${name} --help
-            '';
-            doInstallCheck = true;
-            meta.license = pkgs.lib.licenses.agpl3Only;
-          }) {};
-        };
+    // (
+      with flake-utils.lib;
+      eachDefaultSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
+        in
+        {
+          checks = {
+            default = self.packages.${system}.default;
+          };
+          packages = {
+            default = pkgs.callPackage (
+              {
+                lispPackagesLite,
+                dockutil,
+                findutils,
+                jq,
+                rsync,
+              }:
+              with lispPackagesLite;
+              lispScript rec {
+                name = "mac-app-util";
+                src = ./main.lisp;
+                dependencies = [
+                  alexandria
+                  inferior-shell
+                  cl-interpol
+                  cl-json
+                  str
+                  trivia
+                ];
+                nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
+                postInstall = ''
+                  wrapProgramBinary "$out/bin/${name}" \
+                    --suffix PATH : "${
+                      with pkgs;
+                      lib.makeBinPath [
+                        dockutil
+                        rsync
+                        findutils
+                        jq
+                      ]
+                    }"
+                '';
+                installCheckPhase = ''
+                  $out/bin/${name} --help
+                '';
+                doInstallCheck = true;
+                meta.license = pkgs.lib.licenses.agpl3Only;
+              }
+            ) { };
+          };
 
-        formatter = pkgs.nixfmt;
-      }));
+          formatter = pkgs.nixfmt;
+        }
+      )
+    );
 }
