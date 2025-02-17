@@ -148,7 +148,12 @@
       ;; 🤷
       (sh `(sh:and
             (find ,to-cnts -name "*.icns" -delete)
-            (rsync :include "*.icns" :exclude "*" :recursive ,from-cnts ,to-cnts))))))
+            (rsync :include "*.icns"
+                   :exclude "*"
+                   :recursive
+                   ;; For icon files which are symlinks
+                   :links
+                   ,from-cnts ,to-cnts))))))
 
 (defun mktrampoline-app (app trampoline)
   (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
