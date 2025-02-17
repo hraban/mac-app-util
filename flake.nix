@@ -66,6 +66,9 @@
       let
         pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
       in {
+        checks = {
+          default = self.packages.${system}.default;
+        };
         packages = {
           default = pkgs.callPackage ({
             lispPackagesLite
