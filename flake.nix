@@ -64,7 +64,19 @@
     //
     (with flake-utils.lib; eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system}.extend cl-nix-lite.overlays.default;
+        pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [ 
+          (final: prev: {
+            sbcl = prev.sbcl.overrideAttrs (prevPkg: rec {
+              version = "2.5.2";
+              src = prev.fetchurl {
+                url = "mirror://sourceforge/project/sbcl/sbcl/${version}/sbcl-${version}-source.tar.bz2";
+                sha256 = "sha256-XcJ+un3aQz31P9dEHeixFHSoLNrBaJwfbOVfoGXWX6w=";
+              };
+              patches = prevPkg.patches ++ [ ./sbcl.patch ];
+            });
+          })
+          cl-nix-lite.overlays.default
+        ];
       in {
         checks = {
           default = self.packages.${system}.default;

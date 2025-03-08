@@ -1,0 +1,33 @@
+diff --git a/src/runtime/bsd-os.c b/src/runtime/bsd-os.c
+index 02b54e5..b1c51ac 100644
+--- a/src/runtime/bsd-os.c
++++ b/src/runtime/bsd-os.c
+@@ -167,7 +167,6 @@ os_alloc_gc_space(int space_id, int attributes, os_vm_address_t addr, os_vm_size
+ 
+     attributes &= ~IS_GUARD_PAGE;
+ 
+-#ifndef LISP_FEATURE_DARWIN // Do not use MAP_FIXED, because the OS is sane.
+     /* The *BSD family of OSes seem to ignore 'addr' when it is outside
+      * of some range which I could not figure out.  Sometimes it seems like the
+      * condition is that any address below 4GB can't be requested without MAP_FIXED,
+@@ -196,7 +195,6 @@ os_alloc_gc_space(int space_id, int attributes, os_vm_address_t addr, os_vm_size
+ 
+     // ALLOCATE_LOW seems never to get what we want
+     if (!(attributes & MOVABLE) || (attributes & ALLOCATE_LOW)) flags |= MAP_FIXED;
+-#endif
+ 
+ #ifdef MAP_EXCL // not defined in OpenBSD, NetBSD, DragonFlyBSD
+     if (flags & MAP_FIXED) flags |= MAP_EXCL;
+@@ -233,9 +231,10 @@ os_alloc_gc_space(int space_id, int attributes, os_vm_address_t addr, os_vm_size
+         os_vm_address_t requested = addr;
+         addr = sbcl_mmap(addr, len, protection, flags, -1, 0);
+         if (requested && requested != addr && !(attributes & MOVABLE)) {
+-            return 0;
++            fprintf(stderr, "mmap: requested fixed address %p, but kernel "
++                "allocated memory to another address (%p)\n", requested, addr);
++            return NULL;
+         }
+-
+     }
+ 
+     if (addr == MAP_FAILED) {
