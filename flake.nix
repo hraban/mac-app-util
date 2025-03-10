@@ -57,7 +57,12 @@
         system.activationScripts.postActivation.text = let
           mac-app-util = self.packages.${pkgs.stdenv.system}.default;
         in ''
-          ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
+          trampolines_dir="/Applications/Nix Trampolines"
+          nix_apps_dir="/Applications/Nix Apps"
+
+          echo "mac-app-util: syncing trampolines for $nix_apps_dir..."
+          ${mac-app-util}/bin/mac-app-util sync-trampolines "$nix_apps_dir" "$trampolines_dir"
+          chflags hidden "$trampolines_dir"
         '';
       };
     }
