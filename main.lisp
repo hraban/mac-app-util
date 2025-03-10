@@ -159,7 +159,8 @@
   (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
     (sh `("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd))
     (sync-icons app trampoline)
-    (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)))
+    (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)
+    (sh `("/usr/bin/touch" ,trampoline))))
 
 (defun mktrampoline-bin (bin trampoline)
   ;; In order for applescript not to wait on the binary you must direct both
