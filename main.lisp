@@ -128,7 +128,8 @@
                    (jq :argjson keys ,keys ,jqfilter (< orig) (> filtered))
                    (sh:pipe (cat bare-wrapper filtered)
                             (jq #\s add (> final)))
-                   (,*plutil* -convert xml1 -- final)))
+                   (,*plutil* -convert xml1 -- final)
+                   (,*plutil* -insert "LSUIElement" -bool true final)))
       (copy-file "final" to))))
 
 (defun resources (app)
