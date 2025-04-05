@@ -53,13 +53,7 @@
           };
         };
       };
-      darwinModules.default = { pkgs, ... }: {
-        system.activationScripts.postActivation.text = let
-          mac-app-util = self.packages.${pkgs.stdenv.system}.default;
-        in ''
-          ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
-        '';
-      };
+      darwinModules.default = import ./nix-darwin-module.nix { mac-app-util-packages = self.packages; };
     }
     //
     (with flake-utils.lib; eachDefaultSystem (system:
