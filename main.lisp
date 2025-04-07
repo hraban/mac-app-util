@@ -156,18 +156,8 @@
                    ,from-cnts ,to-cnts))))))
 
 (defun mktrampoline-app (app trampoline)
-  (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
-    (sh `("/usr/bin/osacompile" #\o ,trampoline #\e ,cmd))
-    (sync-icons app trampoline)
-    (copy-paths (infoplist app) (infoplist trampoline) *copyable-app-props*)
-    ;; Sometimes the OS displays blank or stock applescript icons for these
-    ;; generated apps in launchpad, finder, etc.  It’s not 100% clear why and
-    ;; it’s hard to reproduce but this seems to help.  Probably a race condition
-    ;; between generating the original wrapper and updating the icons.  A
-    ;; cleaner solution would be building the app bundle in a temporary
-    ;; directory and only copying it in when fully ready, but this works for
-    ;; now.
-    (sh `(touch ,trampoline))))
+  (ensure-directories-exist (uiop:ensure-pathname trampoline :ensure-directory t))
+  (sh `(ln #\s #\f ,(format NIL "~A/Contents" app) ,(format NIL "~A/Contents" trampoline))))
 
 (defun mktrampoline-bin (bin trampoline)
   ;; In order for applescript not to wait on the binary you must direct both
