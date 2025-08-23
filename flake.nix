@@ -71,6 +71,15 @@
           '';
         };
       };
+      lib.assembleBrewAppsInOneFolder = { pkgs, brewPackages }:
+        pkgs.runCommand "assembleBrewAppsInOneFolder" { } ''
+          mkdir --parents $out
+          for PACKAGE in ${builtins.concatStringsSep " " brewPackages}; do
+            for APP in "$PACKAGE"/*/*.app; do
+              ln --symbolic "$APP" "$out"
+            done
+          done
+        '';
     }
     //
     (with flake-utils.lib; eachDefaultSystem (system:
@@ -114,6 +123,19 @@
             doInstallCheck = true;
             meta.license = pkgs.lib.licenses.agpl3Only;
           }) {};
+
+          shellHook =
+            let
+              is-on-mac = builtins.hasAttr system self.packages;
+              mac-app-util = self.packages.${system}.default;
+            in
+            pkgs.writeShellScriptBin "mac-app-util-shell-hook" (
+              if is-on-mac then ''
+                fromDir="$1"
+                toDir="~/Applications/$2"
+                ${mac-app-util}/bin/mac-app-util sync-trampolines "$fromDir" "$toDir"
+              '' else ""
+            );
         };
       }));
 }
