@@ -53,12 +53,23 @@
           };
         };
       };
-      darwinModules.default = { pkgs, ... }: {
-        system.activationScripts.postActivation.text = let
-          mac-app-util = self.packages.${pkgs.stdenv.system}.default;
-        in ''
-          ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
-        '';
+      darwinModules.default = { config, pkgs, lib, ... }: {
+        options = {
+          # Technically this isn’t a “service” but this seems like the most
+          # polite place to put this?
+          services.mac-app-util.enable = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            example = false;
+          };
+        };
+        config = lib.mkIf config.services.mac-app-util.enable {
+          system.activationScripts.postActivation.text = let
+            mac-app-util = self.packages.${pkgs.stdenv.system}.default;
+          in ''
+            ${mac-app-util}/bin/mac-app-util sync-trampolines "/Applications/Nix Apps" "/Applications/Nix Trampolines"
+          '';
+        };
       };
     }
     //
