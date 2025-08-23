@@ -258,6 +258,12 @@ Also resolves symlinks, if relevant.
 
 ;;; sync-trampolines
 
+(defun symlinked-dir-p (d)
+  (let ((resolved (uiop:directory-exists-p d)))
+    (and resolved
+         (not (equal (uiop:ensure-directory-pathname d)
+                     resolved)))))
+
 (defun to-abs-dir (d)
   "Transform d into an absolute directory pathname."
   (uiop:ensure-pathname d
@@ -283,11 +289,15 @@ Also resolves symlinks, if relevant.
 (defun sync-trampolines (&rest args)
   (destructuring-bind (from to) (mapcar #'to-abs-dir args)
     (rm-rf to)
-    (ensure-directories-exist to)
-    (let ((apps (gather-apps from)))
-      (dolist (app apps)
-        (mktrampoline app (merge-pathnames (directory-name app) to)))
-      (sync-dock apps))))
+    ;; Since 25.11 nix-darwin copies .app folders directly to /Applications.  In
+    ;; that scenario, trampolines only get in the way.
+    ;; https://github.com/nix-darwin/nix-darwin/pull/1396
+    (when (symlinked-dir-p from)
+      (ensure-directories-exist to)
+      (let ((apps (gather-apps from)))
+        (dolist (app apps)
+          (mktrampoline app (merge-pathnames (directory-name app) to)))
+        (sync-dock apps)))))
 
 
 ;;; CLI
