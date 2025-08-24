@@ -114,11 +114,12 @@
                 strict = true;
               };
             };
-          formatter = (treefmt-nix.lib.evalModule pkgs treefmt).config.build.wrapper;
+          treefmtPkg = treefmt-nix.lib.evalModule pkgs treefmt;
         in
         {
           checks = {
             default = self.packages.${system}.default;
+            treefmt = treefmtPkg.config.build.check self;
           };
           packages = {
             default = pkgs.callPackage (
@@ -162,7 +163,7 @@
               }
             ) { };
           };
-          inherit formatter;
+          formatter = treefmtPkg.config.build.wrapper;
         }
       )
     );
