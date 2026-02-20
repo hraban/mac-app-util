@@ -154,7 +154,7 @@
                    :recursive
                    ;; For icon files which are symlinks
                    :links
-                   ,from-cnts ,to-cnts))))))
+                   ,from-cnts ,to-cnts)))
       ;; Copy Assets.car for CFBundleIconName resolution (Tahoe)
       (let ((car-from (merge-pathnames "Assets.car" from-cnts)))
         (when (probe-file car-from)
