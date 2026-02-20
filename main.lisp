@@ -146,19 +146,20 @@
   "Remove all icons from TO apps resources, and copy all icons FROM to it"
   (destructuring-bind (from-cnts to-cnts) (mapcar #'resources (list from to))
     (when (probe-file from-cnts)
+      ;; Always remove osacompile's Assets.car (contains only the generic "applet" icon)
+      (let ((target-car (merge-pathnames "Assets.car" to-cnts)))
+        (when (probe-file target-car)
+          (delete-file target-car)))
       ;; 🤷
       (sh `(sh:and
             (find ,to-cnts -name "*.icns" -delete)
             (rsync :include "*.icns"
+                   :include "Assets.car"
                    :exclude "*"
                    :recursive
                    ;; For icon files which are symlinks
                    :links
-                   ,from-cnts ,to-cnts)))
-      ;; Copy Assets.car for CFBundleIconName resolution (Tahoe)
-      (let ((car-from (merge-pathnames "Assets.car" from-cnts)))
-        (when (probe-file car-from)
-          (copy-file car-from (merge-pathnames "Assets.car" to-cnts)))))))
+                   ,from-cnts ,to-cnts))))))
 
 (defun mktrampoline-app (app trampoline)
   (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
