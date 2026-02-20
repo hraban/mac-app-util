@@ -155,6 +155,10 @@
                    ;; For icon files which are symlinks
                    :links
                    ,from-cnts ,to-cnts))))))
+      ;; Copy Assets.car for CFBundleIconName resolution (Tahoe)
+      (let ((car-from (merge-pathnames "Assets.car" from-cnts)))
+        (when (probe-file car-from)
+          (copy-file car-from (merge-pathnames "Assets.car" to-cnts)))))))
 
 (defun mktrampoline-app (app trampoline)
   (let ((cmd (format NIL "do shell script \"open '~A'\"" app)))
