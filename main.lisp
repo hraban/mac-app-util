@@ -42,6 +42,7 @@
     "CFBundleDocumentTypes"
     "CFBundleGetInfoString"
     "CFBundleIconFile"
+    "CFBundleIconName"
     "CFBundleIdentifier"
     "CFBundleInfoDictionaryVersion"
     "CFBundleName"
