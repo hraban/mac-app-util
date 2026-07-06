@@ -42,6 +42,7 @@
     "CFBundleDocumentTypes"
     "CFBundleGetInfoString"
     "CFBundleIconFile"
+    "CFBundleIconName"
     "CFBundleIdentifier"
     "CFBundleInfoDictionaryVersion"
     "CFBundleName"
@@ -145,10 +146,15 @@
   "Remove all icons from TO apps resources, and copy all icons FROM to it"
   (destructuring-bind (from-cnts to-cnts) (mapcar #'resources (list from to))
     (when (probe-file from-cnts)
+      ;; Always remove osacompile's Assets.car (contains only the generic "applet" icon)
+      (let ((target-car (merge-pathnames "Assets.car" to-cnts)))
+        (when (probe-file target-car)
+          (delete-file target-car)))
       ;; 🤷
       (sh `(sh:and
             (find ,to-cnts -name "*.icns" -delete)
             (rsync :include "*.icns"
+                   :include "Assets.car"
                    :exclude "*"
                    :recursive
                    ;; For icon files which are symlinks
